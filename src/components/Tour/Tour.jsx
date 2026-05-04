@@ -48,45 +48,55 @@ function useTargetRect(selector, deps) {
   return rect
 }
 
+const TIP_HEIGHT_EST = 280 // approximate; matches the rendered card height with action prompt
+
 function tooltipPosition(rect) {
   if (!rect) return null
   const vpW = window.innerWidth
   const vpH = window.innerHeight
+  const MARGIN = 16
 
-  // Try below first
-  if (rect.bottom + TIP_OFFSET + 200 < vpH) {
-    return {
-      placement: 'below',
-      top: rect.bottom + TIP_OFFSET,
-      left: clampX(rect.left + rect.width / 2 - TIP_WIDTH / 2, vpW),
-    }
+  const spaceRight = vpW - rect.right - TIP_OFFSET - MARGIN
+  const spaceLeft  = rect.left - TIP_OFFSET - MARGIN
+  const spaceBelow = vpH - rect.bottom - TIP_OFFSET - MARGIN
+  const spaceAbove = rect.top - TIP_OFFSET - MARGIN
+
+  // Center the tooltip vertically against the target, but keep it on screen
+  const vertCenter = () => {
+    const c = rect.top + rect.height / 2 - TIP_HEIGHT_EST / 2
+    return Math.max(MARGIN, Math.min(c, vpH - TIP_HEIGHT_EST - MARGIN))
   }
-  // Try above
-  if (rect.top - TIP_OFFSET - 200 > 0) {
-    return {
-      placement: 'above',
-      top: Math.max(8, rect.top - 220),
-      left: clampX(rect.left + rect.width / 2 - TIP_WIDTH / 2, vpW),
-    }
+  // Center the tooltip horizontally against the target, but keep it on screen
+  const horizCenter = () => {
+    const c = rect.left + rect.width / 2 - TIP_WIDTH / 2
+    return Math.max(MARGIN, Math.min(c, vpW - TIP_WIDTH - MARGIN))
   }
-  // Right
-  if (rect.right + TIP_OFFSET + TIP_WIDTH < vpW) {
-    return {
-      placement: 'right',
-      top: clampY(rect.top + rect.height / 2 - 100, vpH),
-      left: rect.right + TIP_OFFSET,
-    }
+
+  // Prefer side placement first — keeps vertical neighbors of the target
+  // visible. The boss demo's home-page steps stack vertically, so a "below"
+  // tooltip on the search bar would cover the radius pill, the CTA, and the
+  // headline — all of which are part of the next steps.
+  if (spaceRight >= TIP_WIDTH) {
+    return { placement: 'right', top: vertCenter(), left: rect.right + TIP_OFFSET }
   }
-  // Left
-  return {
-    placement: 'left',
-    top: clampY(rect.top + rect.height / 2 - 100, vpH),
-    left: Math.max(8, rect.left - TIP_OFFSET - TIP_WIDTH),
+  if (spaceLeft >= TIP_WIDTH) {
+    return { placement: 'left', top: vertCenter(), left: rect.left - TIP_OFFSET - TIP_WIDTH }
   }
+  // Side won't fit — fall back to vertical
+  if (spaceBelow >= TIP_HEIGHT_EST) {
+    return { placement: 'below', top: rect.bottom + TIP_OFFSET, left: horizCenter() }
+  }
+  if (spaceAbove >= TIP_HEIGHT_EST) {
+    return { placement: 'above', top: rect.top - TIP_OFFSET - TIP_HEIGHT_EST, left: horizCenter() }
+  }
+  // Last resort: pin to a viewport corner that minimizes occlusion of the target
+  // (right side if target is left-of-center, else left side)
+  const targetCenterX = rect.left + rect.width / 2
+  if (targetCenterX < vpW / 2) {
+    return { placement: 'right', top: MARGIN, left: vpW - TIP_WIDTH - MARGIN }
+  }
+  return { placement: 'left', top: MARGIN, left: MARGIN }
 }
-
-function clampX(x, vpW) { return Math.max(8, Math.min(x, vpW - TIP_WIDTH - 8)) }
-function clampY(y, vpH) { return Math.max(8, Math.min(y, vpH - 220)) }
 
 export default function Tour() {
   const { open, step, next, prev, skip, finish } = useTour()

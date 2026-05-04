@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* surfaces */
+    --bg: #0C0A09;
+    --bg-2: #171412;
+    --bg-3: #1C1917;
+
+    /* text */
+    --text: #FAFAF9;
+    --text-2: #A8A29E;
+    --text-3: #78716C;
+
+    /* lines */
+    --border: rgba(255, 255, 255, 0.06);
+    --border-2: rgba(255, 255, 255, 0.10);
+
+    /* accent system */
+    --accent: #F97066;
+    --accent-soft: rgba(249, 112, 102, 0.12);
+    --accent-glow: rgba(249, 112, 102, 0.35);
+    --success: #34D399;
+    --warn: #FBBF24;
+
+    /* fonts */
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Instrument Serif', Georgia, serif;
+
+    /* motion */
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --d-fast: 120ms;
+    --d-base: 200ms;
+    --d-slow: 360ms;
+  }
+
+  html { background: var(--bg); }
+  body {
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
+  #root { min-height: 100dvh; }
+
+  /* Visible focus ring for keyboard users only */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Honor reduced motion at the platform level */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes heartbeat {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%      { box-shadow: 0 0 0 14px rgba(249, 112, 102, 0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes skel {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+.skeleton { animation: skel 1.4s var(--ease) infinite; background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); }
+
+.serif { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.01em; }
+.heartbeat { animation: heartbeat 1.6s var(--ease) infinite; }
+.slide-up  { animation: slideUp var(--d-base) var(--ease) both; }
